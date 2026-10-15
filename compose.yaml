@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: identra-postgres
+    environment:
+      POSTGRES_DB: identra_db
+      POSTGRES_USER: identra
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set}
+    ports:
+      - "5433:5432"
+    volumes:
+      - identra_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U identra -d identra_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: identra-app
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/identra_db
+      DB_USERNAME: identra
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  identra_postgres_data:
