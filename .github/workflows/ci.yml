@@ -44,11 +44,12 @@ jobs:
           DB_URL: jdbc:postgresql://localhost:5432/identra_db
           DB_USERNAME: postgres
 
-      - name: Diagnose migration and test failures
-        if: failure()
+      - name: Diagnose migration and database state
+        if: always()
         run: |
-          echo "=== Migration files in build output ==="
-          find target/classes/db/migration -maxdepth 1 -type f -print || true
+          echo "=== Migration resources ==="
+          find src/main/resources/db/migration -type f -print
+          find target -path '*db/migration*' -type f -print || true
 
-          echo "=== Flyway references in test reports ==="
-          grep -R -n -i -E "flyway|migration|refresh_tokens|Caused by:" target/surefire-reports || true
+          echo "=== Flyway and Hibernate errors ==="
+          grep -R -n -i -E 'Flyway|Migrating schema|Successfully applied|Successfully baselined|refresh_tokens|Schema validation' target/surefire-reports || true
