@@ -39,3 +39,5 @@ build/
 
 # Local database dumps
 *.sql
+!src/main/resources/db/migration/
+!src/main/resources/db/migration/*.sql
