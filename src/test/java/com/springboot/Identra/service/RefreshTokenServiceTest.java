@@ -2,6 +2,7 @@ package com.springboot.Identra.service;
 
 import com.springboot.Identra.entity.RefreshToken;
 import com.springboot.Identra.entity.User;
+import com.springboot.Identra.exception.InvalidRefreshTokenException;
 import com.springboot.Identra.repository.RefreshTokenRepository;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -87,7 +88,7 @@ class RefreshTokenServiceTest {
                 .thenReturn(Optional.of(refreshToken));
 
         assertThrows(
-                RuntimeException.class,
+                InvalidRefreshTokenException.class,
                 () -> refreshTokenService.verifyRefreshToken("revoked-token")
         );
     }
@@ -104,7 +105,7 @@ class RefreshTokenServiceTest {
                 .thenReturn(Optional.of(refreshToken));
 
         assertThrows(
-                RuntimeException.class,
+                InvalidRefreshTokenException.class,
                 () -> refreshTokenService.verifyRefreshToken("expired-token")
         );
     }
@@ -118,7 +119,7 @@ class RefreshTokenServiceTest {
         oldToken.setExpiresAt(LocalDateTime.now().plusDays(7));
         oldToken.setRevoked(false);
 
-        when(refreshTokenRepository.findByToken("old-token"))
+        when(refreshTokenRepository.findByTokenForUpdate("old-token"))
                 .thenReturn(Optional.of(oldToken));
 
         when(refreshTokenRepository.save(any(RefreshToken.class)))
@@ -169,7 +170,7 @@ class RefreshTokenServiceTest {
         oldToken.setExpiresAt(LocalDateTime.now().plusDays(7));
         oldToken.setRevoked(false);
 
-        when(refreshTokenRepository.findByToken("old-token"))
+        when(refreshTokenRepository.findByTokenForUpdate("old-token"))
                 .thenReturn(Optional.of(oldToken));
 
         when(refreshTokenRepository.save(any(RefreshToken.class)))
@@ -184,8 +185,48 @@ class RefreshTokenServiceTest {
 
         // Second use: the old token should be rejected.
         assertThrows(
-                RuntimeException.class,
+                InvalidRefreshTokenException.class,
                 () -> refreshTokenService.rotateRefreshToken("old-token")
         );
+    }
+
+    @Test
+    void verifyRefreshTokenShouldRejectUnknownToken() {
+
+        when(refreshTokenRepository.findByToken("unknown-token"))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                InvalidRefreshTokenException.class,
+                () -> refreshTokenService.verifyRefreshToken("unknown-token")
+        );
+    }
+
+    @Test
+    void rotateRefreshTokenShouldRejectUnknownToken() {
+
+        when(refreshTokenRepository.findByTokenForUpdate("unknown-token"))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                InvalidRefreshTokenException.class,
+                () -> refreshTokenService.rotateRefreshToken("unknown-token")
+        );
+
+        verify(refreshTokenRepository, never()).save(any(RefreshToken.class));
+    }
+
+    @Test
+    void revokeTokenShouldRejectUnknownToken() {
+
+        when(refreshTokenRepository.findByToken("unknown-token"))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                InvalidRefreshTokenException.class,
+                () -> refreshTokenService.revokeToken("unknown-token")
+        );
+
+        verify(refreshTokenRepository, never()).save(any(RefreshToken.class));
     }
 }

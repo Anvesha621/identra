@@ -24,10 +24,12 @@ public class User {
     private String role;
 
     @Column(nullable = false)
-    private Boolean enabled;
+    private boolean enabled;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     @Column(nullable = false)

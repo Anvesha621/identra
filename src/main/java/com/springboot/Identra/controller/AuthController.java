@@ -56,7 +56,6 @@ public class AuthController {
 
         User user = authService.login(request);
 
-        String token = jwtService.generateToken(user.getUsername());
 
         String accessToken = jwtService.generateToken(user.getUsername());
 

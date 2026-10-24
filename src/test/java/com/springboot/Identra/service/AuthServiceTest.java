@@ -115,7 +115,7 @@ class AuthServiceTest {
         user.setEnabled(true);
         user.setFailedLoginAttempts(0);
 
-        when(userRepository.findByUsername("testuser"))
+        when(userRepository.findByUsernameForUpdate("testuser"))
                 .thenReturn(Optional.of(user));
 
         when(passwordEncoder.matches(
@@ -146,7 +146,7 @@ class AuthServiceTest {
         user.setEnabled(true);
         user.setFailedLoginAttempts(4);
 
-        when(userRepository.findByUsername("testuser"))
+        when(userRepository.findByUsernameForUpdate("testuser"))
                 .thenReturn(Optional.of(user));
 
         when(passwordEncoder.matches(
@@ -184,7 +184,7 @@ class AuthServiceTest {
         user.setFailedLoginAttempts(5);
         user.setLockedUntil(LocalDateTime.now().plusMinutes(10));
 
-        when(userRepository.findByUsername("testuser"))
+        when(userRepository.findByUsernameForUpdate("testuser"))
                 .thenReturn(Optional.of(user));
 
         assertThrows(

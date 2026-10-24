@@ -49,10 +49,16 @@ class JwtServiceTest {
 
         String token = jwtService.generateToken("testuser");
 
-        String tamperedToken = token.substring(0, token.length() - 1) + "x";
+        String[] parts = token.split("\\.");
+
+        // Modify the JWT payload while keeping the original signature.
+        String tamperedPayload = parts[1].substring(0, parts[1].length() - 1)
+                + (parts[1].endsWith("a") ? "b" : "a");
+
+        String tamperedToken = parts[0] + "." + tamperedPayload + "." + parts[2];
 
         assertThrows(
-                Exception.class,
+                io.jsonwebtoken.JwtException.class,
                 () -> jwtService.extractUsername(tamperedToken)
         );
     }

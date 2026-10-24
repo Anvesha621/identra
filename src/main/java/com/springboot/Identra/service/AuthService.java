@@ -9,6 +9,7 @@ import com.springboot.Identra.exception.InvalidCredentialsException;
 import com.springboot.Identra.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -45,9 +46,13 @@ public class AuthService {
         return userRepository.save(user);
     }
 
+    @Transactional(noRollbackFor = {
+            InvalidCredentialsException.class,
+            AccountLockedException.class
+    })
     public User login(LoginRequest request) {
 
-        User user = userRepository.findByUsername(request.getUsername())
+        User user = userRepository.findByUsernameForUpdate(request.getUsername())
                 .orElseThrow(() ->
                         new InvalidCredentialsException(
                                 "Invalid username or password"

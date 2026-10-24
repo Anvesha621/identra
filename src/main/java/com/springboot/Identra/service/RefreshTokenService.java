@@ -2,8 +2,10 @@ package com.springboot.Identra.service;
 
 import com.springboot.Identra.entity.RefreshToken;
 import com.springboot.Identra.entity.User;
+import com.springboot.Identra.exception.InvalidRefreshTokenException;
 import com.springboot.Identra.repository.RefreshTokenRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -42,14 +44,14 @@ public class RefreshTokenService {
         RefreshToken refreshToken = refreshTokenRepository
                 .findByToken(token)
                 .orElseThrow(() ->
-                        new RuntimeException("Invalid refresh token"));
+                        new InvalidRefreshTokenException("Invalid refresh token"));
 
         if (refreshToken.isRevoked()) {
-            throw new RuntimeException("Refresh token has been revoked");
+            throw new InvalidRefreshTokenException("Refresh token has been revoked");
         }
 
-        if (refreshToken.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Refresh token has expired");
+        if (!refreshToken.getExpiresAt().isAfter(LocalDateTime.now())) {
+            throw new InvalidRefreshTokenException("Refresh token has expired");
         }
 
         return refreshToken;
@@ -60,16 +62,30 @@ public class RefreshTokenService {
         RefreshToken refreshToken = refreshTokenRepository
                 .findByToken(token)
                 .orElseThrow(() ->
-                        new RuntimeException("Invalid refresh token"));
+                        new InvalidRefreshTokenException("Invalid refresh token"));
 
         refreshToken.setRevoked(true);
 
         refreshTokenRepository.save(refreshToken);
     }
 
+    @Transactional
     public RefreshToken rotateRefreshToken(String token) {
 
-        RefreshToken oldToken = verifyRefreshToken(token);
+        RefreshToken oldToken = refreshTokenRepository
+                .findByTokenForUpdate(token)
+                .orElseThrow(() ->
+                        new InvalidRefreshTokenException("Invalid refresh token"));
+
+        if (oldToken.isRevoked()) {
+            throw new InvalidRefreshTokenException(
+                    "Refresh token has been revoked");
+        }
+
+        if (!oldToken.getExpiresAt().isAfter(LocalDateTime.now())) {
+            throw new InvalidRefreshTokenException(
+                    "Refresh token has expired");
+        }
 
         oldToken.setRevoked(true);
         refreshTokenRepository.save(oldToken);
