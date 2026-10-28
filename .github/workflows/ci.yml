@@ -40,7 +40,7 @@ jobs:
         run: ./mvnw --batch-mode clean verify
         env:
           DB_PASSWORD: ci-test-password
-          JWT_SECRET: MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=
+          JWT_SECRET: ${{ secrets.CI_JWT_SECRET }}
           DB_URL: jdbc:postgresql://localhost:5432/identra_db
           DB_USERNAME: postgres
 
