@@ -171,13 +171,12 @@ On Windows PowerShell:
 .\mvnw.cmd clean test
 ```
 
-The current test suite contains 24 tests, all of which passed during the latest local run.
+The current test suite contains 36 tests, all of which passed during the latest local verification.
 
 ## Future Improvements
 
 Potential future enhancements include:
 
-- CI/CD integration with GitHub Actions
 - Additional integration and security tests
 - Production deployment
 - Enhanced monitoring and observability
